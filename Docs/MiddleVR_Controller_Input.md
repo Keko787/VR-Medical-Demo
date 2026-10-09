@@ -1,7 +1,7 @@
 # Porting the Gun's Controller Input to the MiddleVR Wand
 
 **Area:** Gun / input / MiddleVR
-**Files:** `Assets/_Project/Scripts/MiddleVRWand.cs`, `Scripts/Gun/MiddleVRWand*.cs`, `Scripts/Core/MiddleVRWandMatchRestart.cs`, `Prefabs/Gun/Gun_MiddleVR.prefab`
+**Files:** `Assets/_Project/Scripts/MiddleVRWand.cs`, `Scripts/MiddleVRKeyboard.cs`, `Scripts/Gun/MiddleVRWand*.cs`, `Scripts/Core/MiddleVRWandMatchRestart.cs`, `Scripts/Player/SimplePlayerMovement.cs`, `Prefabs/Gun/Gun_MiddleVR.prefab`
 **Category:** Cross-platform input — Meta Quest (OpenXR) → MiddleVR wand (CAVE)
 **Related:** [MiddleVR CAVE setup](MiddleVR_CAVE_Setup.md)
 
@@ -61,6 +61,9 @@ guarded (MiddleVR is Windows-only) so Android builds still compile, returning `f
 ```csharp
 MiddleVRWand.Held(button)            // ≈ ReadValue >= press
 MiddleVRWand.PressedThisFrame(button) // ≈ WasPressedThisFrame()
+MiddleVRWand.HorizontalAxis           // joystick, -1 left … +1 right (dead zone already applied)
+MiddleVRWand.VerticalAxis             // joystick, -1 back … +1 forward
+MiddleVRKeyboard.Held(Key.W)          // MiddleVR's DirectInput keyboard, named by Unity's Key enum
 ```
 
 ## 4. The components and the button map
@@ -79,6 +82,26 @@ toggles) plus `MVRAttachToNode (HandNode)` so it self-attaches to the tracked wa
 [CAVE setup doc](MiddleVR_CAVE_Setup.md)). `MiddleVRWandMatchRestart` is the twin of
 `AutoStartMatch` and lives on the match-manager object — it has no effect until the match flow
 exists in `BootMiddleVR`.
+
+## 4b. Player movement (`HolographicPlayer`) — the joystick and the keyboard problem
+
+`SimplePlayerMovement` drives the little Player capsule from **three sources summed**: the wand
+joystick (`VerticalAxis` → ±Z, `HorizontalAxis` → ±X), the keyboard as MiddleVR sees it, and the
+keyboard as Unity sees it. Rise is **wand button 0** (trigger, Inspector field `m_RiseButton`) or
+**Space**. Movement is world-axis — forward is +Z, the front screen — because you look *down on*
+this player rather than stand inside it.
+
+Two things learned bringing it up:
+
+- **Unity's Input System keyboard is focus-bound.** `Keyboard.current` only sees keys while the
+  Unity window (in the Editor, the Game view itself) has focus, and in the CAVE it seldom does —
+  MiddleVR's always-on-top compositor is on the mosaic and clicks land there or on other Editor
+  panels. MiddleVR's `vrDriverDirectInput` keyboard is the second road, the same one the kernel's
+  own Shift+D / Shift+W shortcuts ride, so `MiddleVRKeyboard` wraps it and components OR the two.
+- **A force just under static friction looks exactly like dead input.** The capsule sits on the
+  ground at Unity's default friction 0.6, which needs μ·g ≈ 5.9 m/s² of push before it moves; the
+  scene had `moveForce: 5`. The script now steers *velocity* (`m_MoveSpeed`, `m_Acceleration`,
+  `m_RiseSpeed`) so friction is irrelevant and the speed is what the Inspector says.
 
 ## 5. Discovering the wand's button indices
 
@@ -107,6 +130,11 @@ new wand/config.
   position/rotation but not scale. At CAVE aim distances the default 3 cm was invisible — bumped
   to **0.15 m and defaulted on** in `Gun_MiddleVR.prefab`. (A constant-apparent-size option
   scaling by camera distance is a one-liner in `Tracer.Update` if needed.)
+- **The tracer beam is a held laser sight, not a muzzle flash.** `Tracer.m_LineMode` defaults to
+  `Always`: while the line is on it is redrawn from the muzzle to the aim point every frame, in
+  `LateUpdate` so it uses the same frame's wand pose rather than trailing one behind. Set the mode to
+  `OnShot` for the original brief-beam-per-shot behaviour, which is the only thing `m_LineLifetime`
+  still applies to. Either way the line only shows when `m_LineEnabled` is on (wand button 2).
 - **`Camera.main` may be null/untagged under MiddleVR** (it disables the template camera and
   builds its own). Code that caches `Camera.main` must null-guard — the dot's billboard rotation
   does; visibility is unaffected.

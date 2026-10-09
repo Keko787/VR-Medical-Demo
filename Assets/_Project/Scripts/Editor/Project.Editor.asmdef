@@ -3,6 +3,7 @@
     "rootNamespace": "VRShootingGallery.EditorTools",
     "references": [
         "Project.Runtime",
+        "Unity.InputSystem",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [

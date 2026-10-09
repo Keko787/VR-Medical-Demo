@@ -1,0 +1,3 @@
+Fix the multiple view angles (fix the camera to one place or find an alternative) *Note keeping the room to the scale of the Cave Room prevents the multiple view angles to cause cybersickness.
+
+Make set design draft for kayla  

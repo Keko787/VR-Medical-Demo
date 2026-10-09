@@ -14,6 +14,19 @@ namespace VRShootingGallery
     /// </summary>
     public static class MiddleVRWand
     {
+        /// <summary>
+        /// True once MiddleVR's kernel is up and there is a device manager to ask. False at a desk,
+        /// which is the difference between "the wand says no" and "there is no wand".
+        /// </summary>
+        public static bool Available
+        {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+            get => MVR.DeviceMgr != null;
+#else
+            get => false;
+#endif
+        }
+
         /// <summary>True while the wand button is held (MiddleVR maps the analog trigger to a button).</summary>
         public static bool Held(int button)
         {
@@ -22,6 +35,37 @@ namespace VRShootingGallery
             return devices != null && devices.IsWandButtonPressed((uint)Mathf.Max(0, button));
 #else
             return false;
+#endif
+        }
+
+        /// <summary>
+        /// The wand joystick's sideways deflection, -1 (left) to +1 (right). MiddleVR has already
+        /// applied the <c>.vrx</c> dead zone, so a resting stick reads exactly 0.
+        /// </summary>
+        public static float HorizontalAxis
+        {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+            get
+            {
+                var devices = MVR.DeviceMgr;
+                return devices == null ? 0f : devices.GetWandHorizontalAxisValue();
+            }
+#else
+            get => 0f;
+#endif
+        }
+
+        /// <summary>The wand joystick's forward deflection, -1 (pulled back) to +1 (pushed away).</summary>
+        public static float VerticalAxis
+        {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR
+            get
+            {
+                var devices = MVR.DeviceMgr;
+                return devices == null ? 0f : devices.GetWandVerticalAxisValue();
+            }
+#else
+            get => 0f;
 #endif
         }
 

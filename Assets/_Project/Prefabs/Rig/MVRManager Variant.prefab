@@ -8,6 +8,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2096799373039789749, guid: d1106f80c71f75d49b48cd77eee35abc, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2096799373039789751, guid: d1106f80c71f75d49b48cd77eee35abc, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2096799373566465864, guid: d1106f80c71f75d49b48cd77eee35abc, type: 3}
       propertyPath: m_Name
       value: MVRManager Variant
@@ -63,6 +71,14 @@ PrefabInstance:
     - target: {fileID: 2096799373566465870, guid: d1106f80c71f75d49b48cd77eee35abc, type: 3}
       propertyPath: EditorConfigFile
       value: C:\Users\Exx\Desktop\visbox\config\MiddleVR\MVR.vrx
+      objectReference: {fileID: 0}
+    - target: {fileID: 2096799373969749406, guid: d1106f80c71f75d49b48cd77eee35abc, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2096799374121765347, guid: d1106f80c71f75d49b48cd77eee35abc, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

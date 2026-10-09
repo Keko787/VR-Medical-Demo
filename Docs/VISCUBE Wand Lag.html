@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>VISCUBE Wand Lag</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --surface: #FFFFFF;
+    --ink: #16202B;
+    --muted: #5B6875;
+    --rule: #D5DCE3;
+    --accent: #0B6E7A;
+    --accent-soft: #DCEFF1;
+    --slow: #B4361F;
+    --slow-bg: #FBE9E4;
+    --fast: #1F7A4A;
+    --fast-bg: #E3F3EA;
+    --code-bg: #EAEFF3;
+    --gpu-a: #6B7A8A;
+    --gpu-b: #0B6E7A;
+    --display: "Barlow Semi Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+    --body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1319;
+      --surface: #151C24;
+      --ink: #E4E9EF;
+      --muted: #97A3B0;
+      --rule: #2A3540;
+      --accent: #4FC3CF;
+      --accent-soft: #15333A;
+      --slow: #F09A85;
+      --slow-bg: #3A1F19;
+      --fast: #7DD3A0;
+      --fast-bg: #173126;
+      --code-bg: #0A0F14;
+      --gpu-a: #8A98A8;
+      --gpu-b: #4FC3CF;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1319;
+    --surface: #151C24;
+    --ink: #E4E9EF;
+    --muted: #97A3B0;
+    --rule: #2A3540;
+    --accent: #4FC3CF;
+    --accent-soft: #15333A;
+    --slow: #F09A85;
+    --slow-bg: #3A1F19;
+    --fast: #7DD3A0;
+    --fast-bg: #173126;
+    --code-bg: #0A0F14;
+    --gpu-a: #8A98A8;
+    --gpu-b: #4FC3CF;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .page { max-width: 1040px; margin: 0 auto; padding: 48px 24px 96px; }
+  .prose { max-width: 68ch; }
+  .wide { max-width: 100%; }
+
+  header.masthead { padding-bottom: 28px; border-bottom: 1px solid var(--rule); margin-bottom: 40px; }
+  .eyebrow {
+    font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(38px, 6vw, 58px);
+    line-height: 1.02; letter-spacing: -0.01em; margin: 10px 0 18px; text-wrap: balance;
+  }
+  .dek { font-size: 20px; line-height: 1.45; color: var(--ink); margin: 0 0 22px; max-width: 62ch; text-wrap: balance; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .meta b { color: var(--ink); font-weight: 600; }
+
+  h2 {
+    font-family: var(--display); font-weight: 600; font-size: 30px; line-height: 1.1;
+    margin: 56px 0 14px; letter-spacing: -0.005em; text-wrap: balance;
+  }
+  h2 .eyebrow { display: block; margin-bottom: 8px; }
+  h3 { font-family: var(--display); font-weight: 600; font-size: 20px; margin: 30px 0 8px; }
+  p { margin: 0 0 16px; }
+  ul, ol { padding-left: 1.3em; margin: 0 0 16px; }
+  li { margin-bottom: 6px; }
+  li::marker { color: var(--muted); }
+  code, kbd { font-family: var(--mono); font-size: 0.86em; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; }
+  pre {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.5; background: var(--code-bg);
+    padding: 14px 16px; border-radius: 4px; overflow-x: auto; margin: 0 0 18px; color: var(--ink);
+  }
+  pre .hl { color: var(--accent); font-weight: 600; }
+  pre .slow { color: var(--slow); font-weight: 600; }
+  pre .fast { color: var(--fast); font-weight: 600; }
+  pre .dim { color: var(--muted); }
+
+  /* verdict block */
+  .verdict {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--rule);
+    border-radius: 6px; overflow: hidden; margin: 0 0 28px; background: var(--surface);
+  }
+  .verdict > div { padding: 18px 20px; }
+  .verdict > div + div { border-left: 1px solid var(--rule); }
+  .verdict .label { font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .verdict .big { font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
+  .verdict .slowc { color: var(--slow); }
+  .verdict .fastc { color: var(--fast); }
+  .verdict .sub { font-size: 14.5px; color: var(--muted); font-family: var(--body); }
+  @media (max-width: 640px) { .verdict { grid-template-columns: 1fr; } .verdict > div + div { border-left: 0; border-top: 1px solid var(--rule); } }
+
+  /* diagram */
+  figure { margin: 22px 0 28px; }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; line-height: 1.45; max-width: 74ch; }
+  .diagram { width: 100%; height: auto; display: block; }
+  .diagram text { font-family: var(--mono); font-size: 11.5px; fill: var(--ink); }
+  .diagram .t-muted { fill: var(--muted); }
+  .diagram .t-head { font-family: var(--display); font-size: 14px; font-weight: 600; }
+  .diagram .box { fill: var(--surface); stroke: var(--rule); stroke-width: 1.2; }
+  .diagram .gpu-a { fill: var(--surface); stroke: var(--gpu-a); stroke-width: 1.6; }
+  .diagram .gpu-b { fill: var(--surface); stroke: var(--gpu-b); stroke-width: 1.6; }
+  .diagram .wall { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1; }
+  .diagram .path-slow { stroke: var(--slow); stroke-width: 2.2; fill: none; }
+  .diagram .path-fast { stroke: var(--fast); stroke-width: 2.2; fill: none; }
+  .diagram .path-dash { stroke-dasharray: 5 4; }
+  .diagram .arrow-slow { fill: var(--slow); }
+  .diagram .arrow-fast { fill: var(--fast); }
+  .diagram .t-slow { fill: var(--slow); font-weight: 600; }
+  .diagram .t-fast { fill: var(--fast); font-weight: 600; }
+
+  /* bars */
+  .bars { display: grid; grid-template-columns: minmax(200px, 300px) 1fr 72px; gap: 10px 14px; align-items: center; margin: 18px 0 8px; }
+  .bars .lab { font-family: var(--display); font-weight: 600; font-size: 15px; line-height: 1.2; }
+  .bars .lab small { display: block; font-family: var(--mono); font-weight: 400; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .bars .track { height: 22px; background: var(--code-bg); border-radius: 3px; position: relative; overflow: hidden; }
+  .bars .fill { position: absolute; inset: 0 auto 0 0; border-radius: 3px; }
+  .bars .fill.slow { background: var(--slow); }
+  .bars .fill.fast { background: var(--fast); }
+  .bars .fill.pending { background: repeating-linear-gradient(135deg, var(--rule) 0 6px, transparent 6px 12px); }
+  .bars .num { font-family: var(--mono); font-size: 14px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .bars .num.slow { color: var(--slow); } .bars .num.fast { color: var(--fast); } .bars .num.pending { color: var(--muted); font-weight: 400; }
+  .axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--muted); margin: 0 72px 0 calc(min(300px, 30%) + 14px); }
+  @media (max-width: 640px) { .bars { grid-template-columns: 1fr 64px; } .bars .lab { grid-column: 1 / -1; } .axis { margin-left: 0; } }
+
+  /* tables */
+  .tablewrap { overflow-x: auto; margin: 0 0 24px; border: 1px solid var(--rule); border-radius: 6px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { padding: 10px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--rule); }
+  th { font-family: var(--display); font-weight: 600; font-size: 14px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+  tr:last-child td { border-bottom: 0; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+  td .slow { color: var(--slow); font-weight: 600; } td .fast { color: var(--fast); font-weight: 600; }
+  .pill { display: inline-block; font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+  .pill.slow { background: var(--slow-bg); color: var(--slow); }
+  .pill.fast { background: var(--fast-bg); color: var(--fast); }
+  .pill.neutral { background: var(--accent-soft); color: var(--accent); }
+
+  /* ruled-out list */
+  .ruled { list-style: none; padding: 0; margin: 0 0 24px; border-top: 1px solid var(--rule); }
+  .ruled li { display: grid; grid-template-columns: minmax(180px, 240px) 1fr; gap: 6px 18px; padding: 12px 0; border-bottom: 1px solid var(--rule); margin: 0; }
+  .ruled .what { font-family: var(--display); font-weight: 600; font-size: 16px; line-height: 1.25; }
+  .ruled .why { font-size: 15px; color: var(--ink); }
+  .ruled .why code { font-size: 0.85em; }
+  @media (max-width: 640px) { .ruled li { grid-template-columns: 1fr; } }
+
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 0 0 24px; }
+  .steps li { position: relative; padding-left: 44px; margin-bottom: 16px; }
+  .steps li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 0; top: 1px; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--accent); color: var(--bg); font-family: var(--display); font-weight: 700; font-size: 15px;
+    display: grid; place-items: center;
+  }
+  .steps li b { font-family: var(--display); font-weight: 600; font-size: 17px; }
+
+  .note { border-left: 3px solid var(--accent); padding: 10px 16px; background: var(--surface); margin: 0 0 20px; font-size: 15.5px; }
+  .note.warn { border-left-color: var(--slow); }
+  footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--rule); font-size: 13.5px; color: var(--muted); font-family: var(--mono); }
+</style>
+<style>body{margin:0} img{max-width:100%} [hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <div class="eyebrow">VisBox CAVE · MiddleVR 2.4.0.4 · investigation report</div>
+    <h1>The wand isn't lagging. The frame is.</h1>
+    <p class="dek">VR-Demo and Sit-Rep looked laggy next to the CAVEWeather app because they were being run from the Unity Editor, which lands on the wrong GPU and renders the CAVE at 14 FPS. The Weather build is fast only because MiddleVR's player wrapper moves it to the GPU that drives the walls. Same exe, swapped GPU: 52.6 → 14.0 FPS.</p>
+    <div class="meta">
+      <span>host <b>VISCUBE</b> (Win10 19045)</span>
+      <span>GPUs <b>Quadro RTX 4000</b> · <b>RTX A6000</b></span>
+      <span>config <b>visbox\MVR.vrx</b> (4 quad-buffer walls)</span>
+      <span>measured <b>2026-09-11 → 09-14</b></span>
+    </div>
+  </header>
+
+  <section class="verdict wide">
+    <div>
+      <div class="label">Editor play mode · Sit-Rep, VR-Demo, Solar-System</div>
+      <div class="big slowc">14 FPS</div>
+      <div class="sub">71.6 ms per frame, identical across three projects and two very different scenes. Unity + compositor on the RTX 4000; every frame copied cross-adapter to the A6000's mosaic.</div>
+    </div>
+    <div>
+      <div class="label">Weather build · launched by its .bat</div>
+      <div class="big fastc">52.6 FPS</div>
+      <div class="sub">19.1 ms per frame. MiddleVR's wrapper respawned it with <code>-force-device-index 1</code>: Unity and the compositor on the RTX A6000, presenting on the GPU that owns the walls.</div>
+    </div>
+  </section>
+
+  <div class="prose">
+    <p>Motion-to-photon for anything parented to <code>HandNode</code> is roughly two to three frame periods (the frame it was sampled in, up to two queued frames, then the compositor's own present). At 72 ms a frame that is 150–250 ms of pose age — "hard to aim". At 19 ms it is 40–60 ms, which by hand reads as "follows the wand". Nothing about the gun, the tracer or the pointer scripts differs between the apps in a way that costs a single frame.</p>
+  </div>
+
+  <h2><span class="eyebrow">What was actually being compared</span>Editor sessions against a wrapped build</h2>
+  <div class="prose">
+    <p>Every MiddleVR kernel log that survives for VR-Demo and Sit-Rep begins with <code>Executable path: …\Unity.exe</code> and <code>-projectpath</code>. Neither project has a usable build on disk: <code>VR-Demo\Build</code> and <code>Sit-Rep-CAVE\Build</code> date from June/July, contain only <code>Boot.unity</code>, and still carry <code>xrsdk-pre-init-library=UnityOpenXR</code> in <code>boot.config</code>. The shooting gallery and physics scenes have only ever run in Play mode.</p>
+    <p>The Weather app, by contrast, is a Unity 2021.2.19f1 standalone build launched by <code>RUN_CAVEWeather_HDRP.bat</code>. Its <code>CaveWeather_HDRP.exe</code> is byte-identical (MD5) to MiddleVR's <code>MiddleVR_UnityPlayer.exe</code> — the wrapper MiddleVR's post-build step installs in place of the real player. Given <code>--config</code>, that wrapper loads the <code>.vrx</code>, finds the DXGI adapter whose output contains the window, and relaunches the game on it.</p>
+    <pre><span class="dim">// Windows Prefetch, CAVEWEATHER_HDRP.EXE-B01B67C4.pf — every CAVE launch is a pair of starts 1 s apart</span>
+2026-08-21 16:38:08 | 2026-08-21 16:38:09 | 2026-08-03 18:14:51 | 2026-08-03 18:14:51 | 2026-07-27 17:33:18 | 2026-07-27 17:33:19
+referenced: …\TEMP\MIDDLEVR\MIDDLEVR_2026-08-21\<span class="hl">UNITY_PLAYER.TXT</span>   …\DESKTOP\VISBOX\CONFIG\MIDDLEVR\MVR.VRX</pre>
+    <p>So the question "why does project A lag and project B not" was really "why does the Editor lag and a wrapped Player not".</p>
+  </div>
+
+  <h2><span class="eyebrow">Where the frame goes</span>Two GPUs, and the walls hang off the second one</h2>
+  <figure class="wide">
+    <svg class="diagram" viewBox="0 0 960 412" role="img" aria-labelledby="dgt">
+      <title id="dgt">Frame path on VISCUBE: Editor renders on the Quadro RTX 4000 and presents cross-adapter onto the A6000's mosaic; a wrapped build is respawned onto the A6000 directly.</title>
+      <defs>
+        <marker id="ah-slow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arrow-slow"/></marker>
+        <marker id="ah-fast" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="arrow-fast"/></marker>
+      </defs>
+
+      <!-- GPU A -->
+      <rect x="20" y="60" width="330" height="222" rx="6" class="gpu-a"/>
+      <text x="36" y="84" class="t-head">NVIDIA Quadro RTX 4000 · 8 GB</text>
+      <text x="36" y="102" class="t-muted">LUID 0:22671 · DXGI adapter 0</text>
+      <text x="36" y="118" class="t-muted">DISPLAY1 primary 2560×1440 @60</text>
+      <rect x="36" y="134" width="130" height="52" rx="4" class="box"/>
+      <text x="48" y="156">Unity Editor</text>
+      <text x="48" y="174" class="t-muted">default adapter</text>
+      <rect x="186" y="134" width="148" height="52" rx="4" class="box"/>
+      <text x="196" y="156">MiddleVR_Compositor</text>
+      <text x="196" y="174" class="t-muted">--adapter 0:22671</text>
+      <rect x="36" y="204" width="298" height="52" rx="4" class="box"/>
+      <text x="48" y="226">2560×6400 stereo window · 131 MB/frame</text>
+      <text x="48" y="244" class="t-muted">DWM cross-adapter copy every frame</text>
+
+      <!-- GPU B -->
+      <rect x="610" y="60" width="330" height="222" rx="6" class="gpu-b"/>
+      <text x="626" y="84" class="t-head">NVIDIA RTX A6000 · 48 GB</text>
+      <text x="626" y="102" class="t-muted">LUID 0:2618f · DXGI adapter 1</text>
+      <text x="626" y="118" class="t-muted">DISPLAY5 mosaic 2560×6400 @120</text>
+      <!-- walls -->
+      <rect x="626" y="134" width="118" height="30" class="wall"/><text x="632" y="153">Center 2560×1600</text>
+      <rect x="626" y="166" width="118" height="30" class="wall"/><text x="632" y="185">Floor  2560×1600</text>
+      <rect x="626" y="198" width="118" height="30" class="wall"/><text x="632" y="217">Left   1719×1600</text>
+      <rect x="626" y="230" width="118" height="30" class="wall"/><text x="632" y="249">Right  1719×1600</text>
+      <text x="756" y="153" class="t-muted">the CAVE mosaic</text>
+      <text x="756" y="171" class="t-muted">4 walls × 2 eyes =</text>
+      <text x="756" y="189" class="t-muted">8 renders, 27.4 Mpx/frame</text>
+      <rect x="756" y="208" width="170" height="52" rx="4" class="box"/>
+      <text x="768" y="230">Wrapped build (child)</text>
+      <text x="768" y="248" class="t-muted">-force-device-index 1</text>
+
+      <!-- slow path -->
+      <path d="M334 230 C 420 230, 500 196, 606 196" class="path-slow path-dash" marker-end="url(#ah-slow)"/>
+      <text x="372" y="160" class="t-slow">Editor: cross-adapter present</text>
+      <text x="372" y="178" class="t-slow">≈ 72 ms/frame · 14 FPS</text>
+
+      <!-- fast path: wrapper -->
+      <rect x="380" y="304" width="280" height="52" rx="4" class="box"/>
+      <text x="392" y="326">MiddleVR_UnityPlayer.exe (stub)</text>
+      <text x="392" y="344" class="t-muted">reads MVR.vrx, picks the window's GPU</text>
+      <path d="M660 330 C 730 330, 790 306, 836 266" class="path-fast" marker-end="url(#ah-fast)"/>
+      <text x="380" y="378" class="t-fast">→ respawned on adapter 1 · 19 ms/frame · 52.6 FPS</text>
+      <path d="M244 330 L 376 330" class="path-fast" marker-end="url(#ah-fast)"/>
+      <text x="36" y="326">"VR Demo.exe" --config MVR.vrx</text>
+      <text x="36" y="344" class="t-muted">any build launched with --config</text>
+
+      <text x="20" y="402" class="t-muted">Numbers from the MiddleVR kernel logs (Frame/FPS lines) and the compositor's adapter enumeration, 2026-09-11 and 09-14.</text>
+    </svg>
+    <figcaption>Unity creates its Direct3D device on the primary display's GPU. The compositor must share textures and fences with Unity, so it follows Unity's adapter. In the Editor that puts the whole 2560×6400 stereo frame on the RTX 4000, from where Windows has to copy it into the A6000's desktop every frame. The VisBox install notes warned about exactly this: "-adapter 2 required (console monitor on 0, sound on 1)".</figcaption>
+  </figure>
+
+  <div class="prose">
+    <p>The kernel's own timing makes the placement the prime suspect before any test: the Editor frame period is content-independent (a 126-rigidbody physics scene, a near-empty gallery and an unrelated football project all sit at 13–15 FPS), and the occasional 5–9 ms kernel delta shows the CPU side of a whole frame is cheap — the other ~60 ms is spent waiting on the present path.</p>
+    <pre><span class="dim">// MiddleVR_2026-09-11\MiddleVR_Unity.txt — VR-Demo, Physics scene, from the Editor</span>
+[ ] Executable path: '…\Unity 2022.3.9f1\Editor\Unity.exe'.
+[ ] Using Adapter '<span class="slow">NVIDIA Quadro RTX 4000</span>': LUID=0:22671
+[ ] Frame: 60,   FPS: <span class="slow">14.1282</span>, Delta Time: 0.0790096
+[ ] Frame: 1020, FPS: 14.4361, Delta Time: 0.0073936   <span class="dim">← CPU side of a frame: 7 ms</span>
+[ ] Frame: 7500, FPS: 14.5758, Delta Time: 0.0685931
+[ ] Quitting after 538.346 seconds and 7521 frames.   <span class="dim">= 71.6 ms/frame</span></pre>
+  </div>
+
+  <h2><span class="eyebrow">The decisive test</span>Same app, same scene, same config — only the GPU changed</h2>
+  <div class="prose">
+    <p>The Weather build makes its own control: appending <code>--start-unity-process</code> (the flag the wrapper normally hands its child) tells the stub to run Unity in-process, which skips the respawn and leaves the game on the default adapter — exactly the placement the Editor gets. Both runs on 2026-09-14, ~60 s each, DTrack listening on UDP 5000 both times.</p>
+  </div>
+  <div class="tablewrap wide">
+    <table>
+      <thead><tr><th></th><th>(A) as the .bat launches it</th><th>(B) + <span style="text-transform:none;letter-spacing:0">--start-unity-process</span></th></tr></thead>
+      <tbody>
+        <tr><td>Processes</td><td>stub <span class="mono">19480</span> → child <span class="mono">14428</span> relaunched with <code>-gpu 1 -force-device-index 1</code></td><td>single process <span class="mono">21292</span>, no respawn</td></tr>
+        <tr><td>Unity renderer</td><td><span class="fast">NVIDIA RTX A6000</span> (48 GB)</td><td><span class="slow">NVIDIA Quadro RTX 4000</span> (8 GB)</td></tr>
+        <tr><td>Compositor</td><td class="mono">--adapter 0:2618f</td><td class="mono">--adapter 0:22671</td></tr>
+        <tr><td>3D-engine load</td><td>70–74 % on the A6000</td><td>30 % on the RTX 4000 (plus the DWM copy)</td></tr>
+        <tr><td>Kernel FPS</td><td class="mono"><span class="fast">52.6</span> mean · 48.4–56.1 · 51 samples</td><td class="mono"><span class="slow">14.0</span> mean · 13.5–14.3 · 14 samples</td></tr>
+        <tr><td>Frame period</td><td class="mono">19.1 ms</td><td class="mono">71.7 ms</td></tr>
+        <tr><td>Verdict</td><td><span class="pill fast">smooth</span></td><td><span class="pill slow">reproduces the Editor exactly</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <pre><span class="dim">// child command line as spawned by the wrapper in run (A)</span>
+CaveWeather_HDRP.exe --config …\MVR.vrx -popupwindow -force-d3d11 <span class="hl">-gpu 1 -force-device-index 1 --start-unity-process</span>
+  --logfilename …\MiddleVR_2026-09-14\MiddleVR_CaveWeather_HDRP.txt -logfile …\MiddleVR_2026-09-14\Unity_Player.txt
+<span class="dim">// compositor as spawned by that child</span>
+MiddleVR_Compositor.exe --pipe … <span class="hl">--adapter 0:2618f</span> -x 2560 -y 0 --width 2560 --height 6400 --renderer Direct3D11 --quadbuffer</pre>
+  </div>
+
+  <h3>Frame rate by GPU placement</h3>
+  <div class="bars wide" role="img" aria-label="Kernel frame rate: Editor 14.0, Weather on RTX 4000 14.0, Weather on RTX A6000 52.6, Editor with force-device-index pending">
+    <div class="lab">Editor play mode <small>VR-Demo · Sit-Rep · Solar-System, RTX 4000</small></div>
+    <div class="track"><div class="fill slow" style="width:23.3%"></div></div>
+    <div class="num slow">14.0</div>
+    <div class="lab">Weather build, respawn bypassed <small>(B) --start-unity-process, RTX 4000</small></div>
+    <div class="track"><div class="fill slow" style="width:23.3%"></div></div>
+    <div class="num slow">14.0</div>
+    <div class="lab">Weather build, wrapper launch <small>(A) -force-device-index 1, RTX A6000</small></div>
+    <div class="track"><div class="fill fast" style="width:87.7%"></div></div>
+    <div class="num fast">52.6</div>
+    <div class="lab">Editor with -force-device-index 1 <small>renderer confirmed A6000 · FPS awaits a Play run</small></div>
+    <div class="track"><div class="fill pending" style="width:100%"></div></div>
+    <div class="num pending">—</div>
+  </div>
+  <div class="axis"><span>0</span><span>15</span><span>30</span><span>45</span><span>60 FPS</span></div>
+
+  <h2><span class="eyebrow">And the Editor can be fixed the same way</span>The Windows Editor honours the flag</h2>
+  <div class="prose">
+    <p>Unity's documentation lists <code>-force-device-index</code> for the Editor as macOS-only. It works on the Windows 2022.3 Editor: launching <code>Unity.exe -force-device-index 1 -projectPath …\VR-Demo</code> produced an Editor whose only 3D-engine instance is on LUID <code>0x2618f</code>.</p>
+    <pre><span class="dim">// Editor.log, 2026-09-14 10:27</span>
+COMMAND LINE ARGUMENTS: Unity.exe -force-device-index 1 -projectPath …
+GfxDevice: creating device client; threaded=1; jobified=0
+    Renderer: <span class="fast">NVIDIA RTX A6000</span> (ID=0x2230)      <span class="dim">← every earlier session: NVIDIA Quadro RTX 4000</span></pre>
+    <p>The compositor takes Unity's adapter, so a Play-mode run from that Editor should log <code>Using Adapter 'NVIDIA RTX A6000'</code> and a frame rate in the Weather build's range rather than 14. That number is the one measurement still open.</p>
+  </div>
+
+  <h2><span class="eyebrow">Ruled out along the way</span>Things that looked like causes and weren't</h2>
+  <ul class="ruled wide">
+    <li><span class="what">The pointer code path</span><span class="why"><code>MVRNodesMapper</code> writes <code>HandNode</code> straight from the kernel matrix at execution order −100, no smoothing (HandNode <code>IsFiltered=0</code> in both configs). The gun is a plain child via a one-shot <code>MVRAttachToNode</code>; <code>GunController.Update</code> raycasts and <code>Tracer.LateUpdate</code> draws from the same frame's muzzle. The Weather laser is MiddleVR's stock <code>MVRWandRay</code> on the same <code>HandNode</code> — identical sample point, zero extra frames.</span></li>
+    <li><span class="what">Scene, physics, scripts</span><span class="why">126 rigidbodies + 117 joints (Physics scene) and 0 rigidbodies (gallery) give the same 14 FPS; project scripts do a raycast, two <code>LineRenderer.SetPosition</code> calls and a few P/Invoke button reads per frame. Solar-System-CAVE, with none of this code, hits the same ceiling.</span></li>
+    <li><span class="what">URP quality, MSAA, HDR</span><span class="why">With a compositor render texture, URP takes <code>msaaSamples</code> from <code>targetTexture.antiAliasing</code>, which MiddleVR sets to 1 — the asset's MSAA 4× never applies. Per-camera GPU work for the 8 views is a few milliseconds on either card.</span></li>
+    <li><span class="what">The Weather .bat flags</span><span class="why"><code>--mvr-window-geometry</code> is a MiddleVR 1.x option; no 2.4 binary contains the string, and the log shows the full 2560×6400 four-wall window. <code>-popupwindow</code> shapes a window MiddleVR hides; <code>-force-d3d11</code> picks the API the Editor already uses.</span></li>
+    <li><span class="what">MiddleVR itself, tracking, licence</span><span class="why"><code>MiddleVR2.dll</code>, <code>MiddleVR_UnityRendering.dll</code>, <code>MiddleVR_Compositor.exe</code> and the DTrack driver are MD5-identical between the Weather build and the package the projects use; same visbox <code>MVR.vrx</code>; licence checked out once at start.</span></li>
+    <li><span class="what">Per-frame logging</span><span class="why">The lagging projects log nothing per frame (47 Editor.log lines in a 7 500-frame session). The Weather build throws four <code>NullReferenceException</code>s and prints a collider name every frame — and is the smooth one.</span></li>
+    <li><span class="what">Script execution order</span><span class="why">MiddleVR's manager runs at −100, project scripts at 0, so poses are fresh. Only one-frame nits remain (the tracer dot is placed in <code>Update</code>; Sit-Rep's beam is still drawn in <code>Update</code>; Sit-Rep's <code>WandOperatorInput</code> samples at −1000) — each worth ~70 ms at 14 FPS, ~19 ms at 52.</span></li>
+    <li><span class="what">Editor throttling, Game-view freeze</span><span class="why">Play mode ignores Interaction Mode; Game-view VSync off; the 60-frame log cadence never stalls, so <code>WaitForEndOfFrame</code> (which drives the compositor present) was firing every frame.</span></li>
+  </ul>
+
+  <h2><span class="eyebrow">What to do</span>Fix, in the order it pays off</h2>
+  <ol class="steps prose">
+    <li><b>Judge latency from a wrapped build, never from Play mode.</b> Rebuild VR-Demo with the demo scenes enabled and launch it the way Weather is launched — the wrapper places it on the A6000 by itself:
+      <pre>"C:\Users\Exx\KostageProjects\VR-Demo\Build\VR Demo.exe" --config "C:\Users\Exx\Desktop\visbox\config\MiddleVR\MVR.vrx" -popupwindow -force-d3d11</pre>
+      Confirm in <code>%LOCALAPPDATA%\Temp\MiddleVR\MiddleVR_&lt;date&gt;\Unity_Player.txt</code> that <code>Renderer:</code> says A6000. Standalone default quality is level 5 "Ultra" (HDR on, per-pixel lights) while the Editor runs "Low" — set them equal before comparing numbers.</li>
+    <li><b>For Editor sessions in the CAVE, add <code>-force-device-index 1</code>.</b> Unity Hub → project ⋮ → <em>Add command line arguments</em>, or launch <code>Unity.exe</code> directly. Verify with <code>Editor.log</code>'s <code>Renderer:</code> line and the compositor's <code>Using Adapter</code> line. (Making the mosaic the Windows main display achieves the same thing without the flag.)</li>
+    <li><b>Then trim pipeline depth.</b> <code>QualitySettings.maxQueuedFrames = 1</code> removes one queued frame of pose age; move the tracer dot into <code>LateUpdate</code> beside the beam; port VR-Demo's LateUpdate <code>Tracer</code> to Sit-Rep; sample Sit-Rep wand buttons after order −100.</li>
+    <li><b>Longer term.</b> MiddleVR 2.4.0 does not support Unity 2022.3 (its version guard is commented out; 2022.3 support arrived in 2.5.9), and its built-in FPS overlay throws on 2022.3 (<code>Arial.ttf</code>). MiddleVR 3 is already installed at <code>C:\Program Files\MiddleVR3</code>.</li>
+  </ol>
+
+  <div class="note warn prose">The Weather app is not lag-free in absolute terms either: 19 ms frames through a two-to-three-frame pipeline is still 40–60 ms of pose age. It is simply below what a hand notices. A 120 Hz mosaic could be driven at 8 ms frames once the placement is right and the 8-view render is trimmed.</div>
+
+  <h2><span class="eyebrow">Appendix</span>Where the evidence lives</h2>
+  <div class="tablewrap wide">
+    <table>
+      <thead><tr><th>Source</th><th>What it tells you</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">%LOCALAPPDATA%\Temp\MiddleVR\MiddleVR_&lt;date&gt;\MiddleVR_*.txt</td><td>Kernel log: config dump, <code>Using Adapter</code>, <code>Frame: N, FPS: x, Delta Time: y</code> every 60 frames. Purged after about a week.</td></tr>
+        <tr><td class="mono">…\MiddleVR_&lt;date&gt;\Unity_Player.txt</td><td>The respawned child's Unity log (<code>Renderer:</code>, <code>jobified=</code>). Only exists for wrapper launches.</td></tr>
+        <tr><td class="mono">%LOCALAPPDATA%\Unity\Editor\Editor.log</td><td>Editor GPU (<code>Renderer:</code>), command-line arguments, exceptions.</td></tr>
+        <tr><td class="mono">C:\Windows\Prefetch\CAVEWEATHER_HDRP.EXE-*.pf</td><td>Last eight launch times and files touched; shows the paired stub/child starts.</td></tr>
+        <tr><td class="mono">Desktop\visbox\doc\NOTES-INSTALL-WIN10.txt</td><td>The integrator's note that apps must be pointed at the projector GPU.</td></tr>
+        <tr><td class="mono">Get-Counter '\GPU Engine(*engtype_3D)\Utilization Percentage'</td><td>Per-process, per-LUID 3D load; instance names carry the pid and LUID.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="prose">
+    <p>Reproduce the A/B in two lines from <code>C:\Users\Exx\Desktop\Weather Game NEW_CHANGES</code>:</p>
+    <pre>CaveWeather_HDRP.exe --config "C:\Users\Exx\Desktop\visbox\config\MiddleVR\MVR.vrx" -popupwindow -force-d3d11
+CaveWeather_HDRP.exe --config "C:\Users\Exx\Desktop\visbox\config\MiddleVR\MVR.vrx" -popupwindow -force-d3d11 <span class="hl">--start-unity-process</span></pre>
+  </div>
+
+  <footer>Method: six read-only investigators over the projects, MiddleVR package sources, binaries and logs; every retained finding adversarially re-checked against the files; then the two live runs above. Nothing in either project was modified.</footer>
+</div>
+</body>
+</html>
