@@ -105,3 +105,9 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# ---------------------------------------------------------------- this project
+
+# Backups left by hand-editing settings and the package manifest.
+*.bak
+_xr_settings_bak/
