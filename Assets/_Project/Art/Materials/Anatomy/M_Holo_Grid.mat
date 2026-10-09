@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_Holo_Grid
+  m_Shader: {fileID: 4800000, guid: baf32e25fdb6cb04e88bfe00a6231925, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _Cell: 0.25
+    - _LineWidth: 1.2
+    - _MajorEvery: 4
+    m_Colors:
+    - _Base: {r: 0.006, g: 0.012, b: 0.024, a: 1}
+    - _Glow: {r: 0.049999982, g: 0.21999997, b: 0.31999996, a: 1}
+    - _GlowCentre: {r: 0.12, g: 0.42, b: 0, a: 1}
+    - _Line: {r: 0.02, g: 0.059999965, b: 0.089999996, a: 1}
+    - _Major: {r: 0.04, g: 0.12999997, b: 0.18999997, a: 1}
+  m_BuildTextureStacks: []
